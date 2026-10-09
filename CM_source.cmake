@@ -150,7 +150,8 @@ INCLUDE_DIRECTORIES (src-cli)
 INCLUDE_DIRECTORIES (src-lib)
 INCLUDE_DIRECTORIES (src-other)
 
-IF (Protobuf_FOUND)
+# Protobuf_FOUND may also be set by other packages (e.g. OpenCV's dependencies), so check DARKNET_TRY_ONNX as well
+IF (Protobuf_FOUND AND DARKNET_TRY_ONNX)
 	INCLUDE_DIRECTORIES	(src-onnx)
 	ADD_SUBDIRECTORY	(src-onnx)
 ENDIF ()

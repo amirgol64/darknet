@@ -277,7 +277,12 @@ static inline float _dn_castu32_f32(uint32_t a)
 static inline float _mm256_extract_float32(__m256 a, const int index)
 {
 	TAT(TATPARMS);
+#if defined(__clang__)
+	// clang-based compilers on Windows (clang-cl, Intel icx) use vector types which support subscripting
+	return a[index];
+#else
 	return a.m256_f32[index];
+#endif
 }
 
 #else    // Linux GCC/Clang
