@@ -105,6 +105,10 @@ static char EMSG[] = "";
 #define EMSG ""
 #endif
 
+/* declare the struct before it is used in prototypes, otherwise clang-based compilers (clang-cl, Intel icx) give each
+ * prototype its own "struct option" type and then report conflicting types */
+struct option;
+
 static int getopt_internal(int, char* const*, const char*,
     const struct option*, int*, int);
 static int parse_long_options(char* const*, const char*,

@@ -16,3 +16,6 @@ __pycache__/
 
 # Visual Studio C++ generated binary of .rc file
 *.aps
+
+# additional build trees (e.g. build-sycl)
+build-*/
