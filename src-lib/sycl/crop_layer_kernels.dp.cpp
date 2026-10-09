@@ -115,9 +115,9 @@ void levels_image_kernel(float *image, float *rand, int batch, int w, int h, int
 	float r3 = rand[8*id + 3];
 
 	saturation = r0*(saturation - 1) + 1;
-	saturation = (r1 > .5) ? 1./saturation : saturation;
+	saturation = (r1 > .5f) ? 1.f/saturation : saturation;
 	exposure = r2*(exposure - 1) + 1;
-	exposure = (r3 > .5) ? 1./exposure : exposure;
+	exposure = (r3 > .5f) ? 1.f/exposure : exposure;
 
 	size_t offset = id * h * w * 3;
 	image += offset;
@@ -134,11 +134,11 @@ void levels_image_kernel(float *image, float *rand, int batch, int w, int h, int
 		shift = 0;
 	}
         image[x + w * (y + h * 0)] =
-            rgb.x() * scale + translate + (rshift - .5) * shift;
+            rgb.x() * scale + translate + (rshift - .5f) * shift;
         image[x + w * (y + h * 1)] =
-            rgb.y() * scale + translate + (gshift - .5) * shift;
+            rgb.y() * scale + translate + (gshift - .5f) * shift;
         image[x + w * (y + h * 2)] =
-            rgb.z() * scale + translate + (bshift - .5) * shift;
+            rgb.z() * scale + translate + (bshift - .5f) * shift;
 }
 
 void forward_crop_layer_kernel(float *input, float *rand, int size, int c, int h, int w, int crop_height, int crop_width, int train, int flip, float angle, float *output)
@@ -169,7 +169,7 @@ void forward_crop_layer_kernel(float *input, float *rand, int size, int c, int h
 
 	float dw = (w - crop_width)*r4;
 	float dh = (h - crop_height)*r5;
-	flip = (flip && (r6 > .5));
+	flip = (flip && (r6 > .5f));
 	angle = 2*angle*r7 - angle;
 	if(!train){
 		dw = (w - crop_width)/2.;

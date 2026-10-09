@@ -305,7 +305,7 @@ void normalize_delta_kernel(int N, float *x, float *mean, float *variance, float
 
         delta[index] =
             delta[index] * 1.F / (sycl::sqrt(variance[f]) + .000001f) +
-            variance_delta[f] * 2. * (x[index] - mean[f]) / (spatial * batch) +
+            variance_delta[f] * 2.f * (x[index] - mean[f]) / (spatial * batch) +
             mean_delta[f] / (spatial * batch);
 }
 
@@ -342,7 +342,7 @@ void  variance_delta_kernel(float *x, float *delta, float *mean, float *variance
 		}
 	}
         variance_delta[i] *=
-            -.5 * dn_sycl::pow(variance[i] + .000001f, (float)(-3. / 2.));
+            -.5f * dn_sycl::pow(variance[i] + .000001f, (float)(-3.f / 2.f));
 }
 
 void accumulate_kernel(float *x, int n, int groups, float *sum)
@@ -426,8 +426,8 @@ void  fast_variance_delta_kernel(float *x, float *delta, float *mean, float *var
 			variance_delta[filter] += local[i];
 		}
                 variance_delta[filter] *=
-                    -.5 *
-                    dn_sycl::pow(variance[filter] + .000001f, (float)(-3. / 2.));
+                    -.5f *
+                    dn_sycl::pow(variance[filter] + .000001f, (float)(-3.f / 2.f));
         }
 }
 
@@ -2293,7 +2293,7 @@ void add_3_arrays_activate_kernel(float *a1, float *a2, float *a3, size_t size, 
 		if (a3) val += a3[index];
                 if (a == LOGISTIC) val = 1.f / (1.f + sycl::native::exp(-val));
                 else if (a == TANH) val = (2 / (1 + sycl::native::exp(-2 * val)) - 1);
-                else if (a == LEAKY) val = (val < 0) ? val*0.1 : val;
+                else if (a == LEAKY) val = (val < 0) ? val*0.1f : val;
 		dst[index] = val;
 	}
 }
@@ -2352,7 +2352,7 @@ void activate_and_mult_kernel(float *a1, float *a2, size_t size, ACTIVATION a, f
         if (index < size) {
 		float val = a1[index];
                 if (a == TANH) val = (2 / (1 + sycl::native::exp(-2 * val)) - 1);
-                else if (a == LEAKY) val = (val < 0) ? val*0.1 : val;
+                else if (a == LEAKY) val = (val < 0) ? val*0.1f : val;
 		dst[index] = val * a2[index];
 	}
 }
@@ -3073,8 +3073,8 @@ void stretch_sway_flip_weights_kernel(const float *src_weight_gpu,
 			if (stage_id == 6) angle = -angle;
 			if (reverse) angle = -angle;
 
-                        const float cos_a = sycl::cos((float)(angle * 3.14159265 / 180));
-                        const float sin_a = sycl::sin((float)(angle * 3.14159265 / 180));
+                        const float cos_a = sycl::cos((float)(angle * 3.14159265f / 180));
+                        const float sin_a = sycl::sin((float)(angle * 3.14159265f / 180));
                         const int x_c = kernel_size / 2;
 			const int y_c = kernel_size / 2;
 
@@ -3248,7 +3248,7 @@ void mult_inverse_array_kernel(const float *src_gpu, float *dst_gpu, int size, c
 		// = (abs(x)*10+1)^(-1)
                 float unsigned_val = dn_sycl::pow(sycl::fabs(val) * 10 + abs_add, eps);
                 unsigned_val = unsigned_val / divider;
-		if (unsigned_val > clip && clip != 0.0) unsigned_val = clip;
+		if (unsigned_val > clip && clip != 0.0f) unsigned_val = clip;
                 if (sycl::isnan(unsigned_val) || sycl::isinf(unsigned_val)) unsigned_val = 0;
                 dst_gpu[index] = unsigned_val * sign;
 	}
