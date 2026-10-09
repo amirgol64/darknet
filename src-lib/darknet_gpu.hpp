@@ -5,7 +5,7 @@
 #pragma once
 
 /** @file
- * Some GPU-specific includes and definitions.  Handles differences between NVIDIA CUDA and AMD ROCm.
+ * Some GPU-specific includes and definitions.  Handles differences between NVIDIA CUDA, AMD ROCm, and SYCL (Intel GPUs).
  */
 
 
@@ -162,3 +162,16 @@
 
 #endif
 // === END OF AMD ROCm ===
+
+
+// ===========================================
+// === START OF SYCL (Intel GPUs, oneAPI)  ===
+// ===========================================
+#ifdef DARKNET_GPU_SYCL
+
+// SYCL is not source-compatible with CUDA, so instead of macros this provides the CUDA runtime, cuBLAS and cuRAND
+// calls Darknet uses, implemented with SYCL and oneMKL.  The kernels are in src-lib/sycl/.
+#include "darknet_sycl.hpp"
+
+#endif
+// === END OF SYCL ===

@@ -139,12 +139,55 @@ ELSE ()
 ENDIF ()
 
 
+# ===================================
+# == SYCL (Intel GPUs, via oneAPI) ==
+# ===================================
+# Experimental, so it is off by default.  Requires the Intel oneAPI DPC++/C++ compiler (icx/icpx) and oneMKL, e.g.:
+#
+#		cmake -G Ninja -DCMAKE_C_COMPILER=icx -DCMAKE_CXX_COMPILER=icx -DDARKNET_TRY_SYCL=ON -DDARKNET_TRY_CUDA=OFF ..
+#
+# Like the ROCm build, the SYCL build does not use cuDNN.  cuBLAS and cuRAND are replaced by oneMKL.
+CMAKE_DEPENDENT_OPTION (DARKNET_TRY_SYCL "Attempt to use SYCL for Intel GPU support (experimental)" OFF "" OFF)
+IF (DARKNET_TRY_SYCL AND NOT DARKNET_USE_CUDA AND NOT DARKNET_USE_ROCM)
+	IF (NOT CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
+		MESSAGE (FATAL_ERROR "SYCL support requires the Intel oneAPI DPC++/C++ compiler (icx/icpx), but the C++ compiler is ${CMAKE_CXX_COMPILER_ID}.")
+	ENDIF ()
+
+	SET (MKL_INTERFACE lp64)
+	FIND_PACKAGE (MKL CONFIG REQUIRED)
+	MESSAGE (STATUS "SYCL detected. Darknet will use Intel GPUs.  Compiler is ${CMAKE_CXX_COMPILER} ${CMAKE_CXX_COMPILER_VERSION}, oneMKL ${MKL_VERSION}.")
+
+	SET (DARKNET_USE_SYCL ON)
+	ADD_COMPILE_DEFINITIONS (DARKNET_GPU_SYCL)
+	ADD_COMPILE_DEFINITIONS (DARKNET_GPU)
+
+	# every file which includes darknet_gpu.hpp sees SYCL types, so the whole build uses -fsycl
+	ADD_COMPILE_OPTIONS ($<$<COMPILE_LANGUAGE:CXX>:-fsycl>)
+	ADD_LINK_OPTIONS (-fsycl)
+
+	# Ahead-of-time compile the kernels for specific GPUs to avoid the JIT delay at startup, e.g. "intel_gpu_tgllp"
+	# for 11th gen Iris Xe or "intel_gpu_acm_g10" for Arc A770.  Default is JIT (spir64), which runs on any GPU.
+	IF (DEFINED DARKNET_SYCL_TARGETS)
+		ADD_COMPILE_OPTIONS ($<$<COMPILE_LANGUAGE:CXX>:-fsycl-targets=${DARKNET_SYCL_TARGETS}>)
+		ADD_LINK_OPTIONS (-fsycl-targets=${DARKNET_SYCL_TARGETS})
+	ENDIF ()
+
+	LIST (APPEND DARKNET_LINK_LIBS MKL::MKL_SYCL::BLAS MKL::MKL_SYCL::RNG)
+
+	# The oneAPI runtime DLLs (SYCL, oneMKL, Intel OpenMP, SVML, ...) come from the oneAPI installation or Intel's
+	# runtime redistributable and are covered by Intel's own license, so the Windows install does not copy them.
+	SET (DARKNET_RUNTIME_EXCLUDE_REGEXES "sycl[0-9]*\\.dll" "ur_.*\\.dll" "mkl_.*\\.dll" "libiomp5md\\.dll" "libmmd\\.dll" "svml_dispmd\\.dll" "tbb.*\\.dll" "umf.*\\.dll")
+ELSEIF (DARKNET_TRY_SYCL)
+	MESSAGE (WARNING "Skipping SYCL since another GPU backend is already enabled.")
+ENDIF ()
+
+
 # ==============
 # == CPU-only ==
 # ==============
-IF (NOT DARKNET_USE_CUDA AND NOT DARKNET_USE_ROCM)
+IF (NOT DARKNET_USE_CUDA AND NOT DARKNET_USE_ROCM AND NOT DARKNET_USE_SYCL)
 	SET (DARKNET_DETECTED_CPU_ONLY TRUE)
-	MESSAGE (WARNING "Neither NVIDIA CUDA nor AMD ROCm detected.  Darknet will be CPU-only.")
+	MESSAGE (WARNING "Neither NVIDIA CUDA, AMD ROCm, nor SYCL detected.  Darknet will be CPU-only.")
 ENDIF ()
 
 
@@ -166,7 +209,9 @@ ENDIF ()
 # ===============
 # == GCC/Clang ==
 # ===============
-IF (CMAKE_COMPILER_IS_GNUCC OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+# The Intel oneAPI compiler (IntelLLVM) is clang-based: on Linux it takes GCC-style options, on Windows (icx) MSVC-style.
+IF (CMAKE_COMPILER_IS_GNUCC OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" OR
+	("${CMAKE_CXX_COMPILER_ID}" STREQUAL "IntelLLVM" AND "${CMAKE_CXX_COMPILER_FRONTEND_VARIANT}" STREQUAL "GNU"))
 	SET (COMPILER_IS_GNU_OR_CLANG TRUE)
 ELSE ()
 	SET (COMPILER_IS_GNU_OR_CLANG FALSE)
@@ -176,7 +221,7 @@ ENDIF ()
 # ====================
 # == GCC/Clang/MSCV ==
 # ====================
-IF (COMPILER_IS_GNU_OR_CLANG OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "MSVC")
+IF (COMPILER_IS_GNU_OR_CLANG OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "MSVC" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "IntelLLVM")
 	SET (COMPILER_IS_GNU_OR_CLANG_OR_MSVC TRUE)
 ELSE ()
 	SET (COMPILER_IS_GNU_OR_CLANG_OR_MSVC FALSE)

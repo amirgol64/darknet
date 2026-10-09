@@ -41,7 +41,7 @@ ELSE ()
 	INSTALL (TARGETS darknetcli
 		DESTINATION bin
 		RUNTIME_DEPENDENCIES
-			PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-" "wpaxholder" "HvsiFileTrust" "PdmUtilities"
+			PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-" "wpaxholder" "HvsiFileTrust" "PdmUtilities" ${DARKNET_RUNTIME_EXCLUDE_REGEXES}
 			POST_EXCLUDE_REGEXES ".*system32/.*\\.dll"
 			DIRECTORIES ${CMAKE_BINARY_DIR}/bin
 		RUNTIME DESTINATION bin

@@ -41,6 +41,11 @@
 #include <omp.h>
 #endif
 
+#ifdef DARKNET_GPU_SYCL
+// must be included before Darknet's global "node" and "list" types (see list.hpp) which otherwise break the SYCL headers
+#include <sycl/sycl.hpp>
+#endif
+
 /** If you're using some old software that expects the original @p C API in the %Darknet library,
  * then make sure you @p "#define DARKNET_INCLUDE_ORIGINAL_API" before you include darknet.h.
  *

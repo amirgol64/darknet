@@ -32,6 +32,13 @@ IF (DARKNET_USE_CUDA OR DARKNET_USE_ROCM)
 
 ENDIF ()
 
+IF (DARKNET_USE_SYCL)
+	# the .cu kernels converted to SYCL (see sycl/README.md); they are normal C++ files built with -fsycl
+	MESSAGE (STATUS "Adding SYCL kernels for GPU build...")
+	FILE (GLOB LIBSYCLSRC sycl/*.dp.cpp)
+	LIST (APPEND LIBHOSTSRC ${LIBSYCLSRC})
+ENDIF ()
+
 IF (WIN32)
 	INCLUDE_DIRECTORIES (windows)
 	FILE (GLOB WINSRC windows/*.c)
