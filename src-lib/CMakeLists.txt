@@ -62,6 +62,10 @@ IF (DARKNET_USE_OPENMP)
 	darknet_enable_host_openmp(darknetobjlib)
 ENDIF ()
 TARGET_LINK_LIBRARIES (darknetobjlib PRIVATE ${DARKNET_LINK_LIBS})
+IF (TARGET darknet_generated_proto)
+	# darknet.cpp includes onnx.proto3.pb.h, so it must be generated before this library is compiled
+	ADD_DEPENDENCIES (darknetobjlib darknet_generated_proto)
+ENDIF ()
 
 SET (DARKNET_OBJECTS $<TARGET_OBJECTS:darknetobjlib>)
 IF (DARKNET_USE_CUDA OR DARKNET_USE_ROCM)
