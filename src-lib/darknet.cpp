@@ -320,6 +320,8 @@ void Darknet::show_version_info()
 
 	#if DARKNET_GPU_ROCM
 		Darknet::show_rocm_info();
+	#elif defined(DARKNET_GPU_SYCL)
+		Darknet::show_sycl_info();
 	#elif defined(DARKNET_GPU_CUDA)
 		show_cuda_cudnn_info();
 	#else
