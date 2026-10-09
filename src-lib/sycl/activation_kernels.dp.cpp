@@ -9,8 +9,8 @@
 
 float lhtan_activate_kernel(float x)
 {
-	if(x < 0) return .001*x;
-	if(x > 1) return .001*(x-1) + 1;
+	if(x < 0) return .001f*x;
+	if(x > 1) return .001f*(x-1) + 1;
 	return x;
 }
 float lhtan_gradient_kernel(float x)
@@ -51,8 +51,8 @@ float tanh_activate_kernel(float x) {
  return (2 / (1 + sycl::native::exp(-2 * x)) - 1);
 }
 float gelu_activate_kernel(float x) {
- return (0.5 * x *
-         (1 + sycl::tanh((float)(0.797885 * x + 0.035677 * dn_sycl::pow(x, 3)))));
+ return (0.5f * x *
+         (1 + sycl::tanh((float)(0.797885f * x + 0.035677f * dn_sycl::pow(x, 3)))));
 }
 float softplus_kernel(float x, float threshold = 20) {
 	if (x > threshold) return x;                // too large
@@ -99,10 +99,10 @@ float sech_gpu(float x) {
 }
 float gelu_gradient_kernel(float x) {
         const float x3 = dn_sycl::pow(x, 3);
-        return 0.5 * sycl::tanh((float)(0.0356774 * x3 + 0.797885 * x)) +
-               (0.0535161 * x3 + 0.398942 * x) *
-                   dn_sycl::pow(sech_gpu(0.0356774 * x3 + 0.797885 * x), 2) +
-               0.5;
+        return 0.5f * sycl::tanh((float)(0.0356774f * x3 + 0.797885f * x)) +
+               (0.0535161f * x3 + 0.398942f * x) *
+                   dn_sycl::pow(sech_gpu(0.0356774f * x3 + 0.797885f * x), 2) +
+               0.5f;
 }
 float plse_gradient_kernel(float x){return (x < 0 || x > 1) ? .01f : .125f;}
 float stair_gradient_kernel(float x)
